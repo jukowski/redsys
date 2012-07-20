@@ -1,14 +1,15 @@
 #!/usr/bin/env coffee
 # :tabSize=4:indentSize=4:
 
-docName = "test-doc";
+docName = "code:test";
 
 require('coffee-script')
-etherpad = require('../types/etherpad')
-hider = require('./hider.coffee')
-transclusion = require('./transclusion.coffee')
+etherpad = require('share').types.etherpad
 
-Connection = require("../client/connection").Connection
+hider = require('./../stex/hider.coffee')
+transclusion = require('./../stex/transclusion.coffee')
+
+Connection = require('share').client.Connection
 
 conn = new Connection("http://localhost:8000/channel") 
 Doc = null

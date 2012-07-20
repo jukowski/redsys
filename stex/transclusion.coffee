@@ -1,9 +1,10 @@
 #!/usr/bin/env coffee
 # :tabSize=4:indentSize=4:
 
-Changeset = require('../../webclient/Changeset')
-AttributePool = require('../../webclient/AttributePool')
-etherpad = require('../types/etherpad')
+etherpad = require('share').types.etherpad
+
+Changeset = etherpad.Changeset
+AttributePool = etherpad.AttributePool
 # modes = require('modes')
 
 hideReg = /(\\STR(label|copy)(?:\[([a-zA-Z0-9_-]+)\])?\s*\{)([^}]+)(\})/g;

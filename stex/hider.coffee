@@ -1,9 +1,9 @@
 #!/usr/bin/env coffee
 # :tabSize=4:indentSize=4:
+etherpad = require('share').types.etherpad
 
-Changeset = require('../../webclient/Changeset')
-AttributePool = require('../../webclient/AttributePool')
-etherpad = require('../types/etherpad')
+Changeset = etherpad.Changeset
+AttributePool = etherpad.AttributePool
 
 hideReg = /(\\termref\{[^}]+\}\s*\{)([^}]+)(\})/g;
 
