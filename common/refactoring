@@ -1,0 +1,11 @@
+etherpad.api.getMeta (offset, len) 
+	returns ranges and their properties in a 
+	snapshot starting from offset and lenght len
+	
+lots of times
+	rangeStart = Changeset.numToString(@snapshot.pool.putAttrib(["range.start",1], true));
+
+view modes
+	1) intersecting ranges? - no
+	2) client dependent views? later
+	
