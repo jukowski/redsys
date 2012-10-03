@@ -1,0 +1,24 @@
+<HTML>
+
+<HEAD>
+<script src="/faye/client.js"></script>
+<script src="/dataview.js"></script>
+<script src="/protobuf.js"></script>
+<script src="/util.js"></script>
+<script src="/api.js"></script>
+</HEAD>
+
+<BODY>
+<script>
+ client = new Faye.Client("/faye");
+ client.subscribe('/messages', function(message) {
+  alert('Got a message: ' + message.text);
+ });
+ initClient = new redsys.InitClient();
+ initClient.name = "test";
+ client.publish('/foo', serialize(initClient));
+</script>
+
+</BODY>
+
+</HTML
