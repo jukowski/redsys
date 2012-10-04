@@ -11,12 +11,12 @@
 <BODY>
 <script>
  client = new Faye.Client("/faye");
- client.subscribe('/messages', function(message) {
-  alert('Got a message: ' + message.text);
- });
  initClient = new redsys.InitClient();
  initClient.name = "test";
- client.publish('/foo', serialize(initClient));
+ client.publish('/service/register', serialize(initClient));
+ client.subscribe('/service/register', function(message) {
+  alert('Got a message: ' + message.text);
+ });
 </script>
 
 </BODY>
