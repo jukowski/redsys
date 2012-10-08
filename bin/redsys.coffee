@@ -1,8 +1,11 @@
 sharejs = require("share").server;
+http = require('http')
 async = require("async");
 localfs = require("vfs-local")
 extend = require("deep-extend")
 path = require("path")
+express = require('express');
+app = express();
 
 createFS = (options) ->
   return switch options.type
@@ -23,3 +26,13 @@ module.exports = (_opt) ->
       getFile : (filePath) ->
         console.log(filePath);
     }
+
+options =
+  db: {type: 'none'},
+  browserChannel: {cors: '*'},
+
+server = http.createServer(app);
+app.use(express.static('../public'));
+sharejs.attach(app, options);
+
+server.listen(8002);

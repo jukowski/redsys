@@ -1,14 +1,11 @@
-ShareJS Services
+RedSyS
 ================
 
-This branch of [ShareJS](https://github.com/josephg/ShareJS) adds supports
-for integrating editing services into editors which are able to communicate
-with ShareJS framework. 
-
+RedSyS (Real-Time Document Synchronization and Service Broker) is an architecture
+enabling real-time integration of editing services into editors. 
 
 Main idea
 ---------
-
 Imagine you want [Eclipse](wwwww.eclipse.org), [jEdit](jedit.org) and 
 [Ace Editor] (http://ace.ajax.org/) to be able to compile, syntax highlight
 and autocomplete "CoffeeScript" files. The typical way of achieving this
@@ -20,19 +17,27 @@ dependent plugins. Note that
 
 This is all very expensive both to develop as well as maintain....
 
-The idea in this project is a bit different. Imagine you writing your "CoffeeScript"
+The idea in this project is a bit different. Imagine you're writing your "CoffeeScript"
 in a Google Docs document. You can share this document with three friends of yours: 
 "John the Coffee compiler", "Mary the Coffee Syntax Highlighter" 
 and "Bob the Coffee autocompleter". When John sees some compilation error in the 
-document, he will underline the parts which don't compile and underline it with red.
-Mary will choose colors for each of your characters and Bob will give you autocomplete
-suggestions when you need it. Now imagine jEdit, Eclipse and Ace Editor could connect 
-to that Google Docs document and display the colors and underlines etc as Google Docs 
-can. Then, with the help of the same three friends, you will have syntax highlighting,
-compilation and autocompletion for free. 
+document, he will underline the parts which don't compile and color them in red.
+Mary will choose colors for each of your Coffee-script characters and Bob will give 
+you autocomplete suggestions when you need it. Furthermore, imagine jEdit, Eclipse 
+and Ace Editor could connect to that Google Docs document and display the colors 
+and underlines etc as Google Docs can. Then, with the help of the same three 
+friends, you will have syntax highlighting, compilation and autocompletion integrated
+in each of the editors -- without rewriting the services for each of the editors. 
 
-I use ShareJS as a substritute for the Google Docs and automated services instread
-of your 3 friends.
+Generally, all it takes to integrate these three, quite different editing services, is 
+ * a shared document all 4 members can change (you and the 3 services)
+ * some type of rich text formatting support (to change color/underline)
+ * and some support for private messaging allowing for autocomplete options to be
+  transported to the editor.
+These are exactly the services provided by the RedSyS architecture:
+ - The Shared Document editing is provided by the ShareJS project
+ - Rich text formatting is provided by the Etherpad document model
+ - Private messaging is yet to be defined...
 
 Here is a summary of the advantages of such an architecture:
  * if want to add a new editor to the architeture, you only need to integrate it
@@ -55,15 +60,16 @@ Here are the steps you need to take
  * Install [NodeJS](http://nodejs.org/), [npm](http://npmjs.org/) and [coffee](http://coffeescript.org/)
  * Checkout the source code
 
-        # git clone https://github.com/jucovschi/ShareJS/tree/services ShareJS
+        # git clone https://github.com/jucovschi/redsys redsys
 
- * Install the dependencies
+ * Install the ShareJS (you need a specific version adding etherpad support) 
 
-        # npm install active-x-obfuscator charm deep-equal formidable optimist socket.io tap websocket \
-        browserchannel coffee-script  difflet     hat         request   socket.io-client  traverse   wordwrap \
-        buffer-equal         connect        faye        nodeunit    slide     string            uglify-js  zeparser
+        # npm install git://github.com/jucovschi/ShareJS.git#etherpad_type
 
- * Run the ShareJS server
+ * Install some more dependencies
+        # npm install async vfs-local deep-extend express
+
+ * Run the redsys server
 
         # cd ShareJS/bin
         # ./exampleservice
