@@ -67,18 +67,27 @@ Here are the steps you need to take
         # npm install git://github.com/jucovschi/ShareJS.git#etherpad_type
 
  * Install some more dependencies
+
         # npm install async vfs-local deep-extend express
 
+ * Recompile sharejs
+ 
+        # cd node_modules/share
+        # cake webclient
+        # cake build
+        # cd ../..
+        
  * Run the redsys server
 
-        # cd ShareJS/bin
-        # ./exampleservice
+        # cd bin
+        # coffee redsys.coffee
 
- * Open your editor at [http://localhost:8000/code_etherpad.html](http://localhost:8000/code_etherpad.html#mCANaUgfrk)
+ * Open your browser at [http://localhost:8002/)
+ 
  * Run the available services at
 
-        # cd ShareJS/src/services
-        # ./runner.coffee
+        # cd bin
+        # coffee runner.coffee
 
 
 
