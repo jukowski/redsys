@@ -22,6 +22,7 @@
     <script src="/share/Changeset.js"></script>
     <script src="/share/share.uncompressed.js"></script>
     <script src="/share/ace.js"></script> 
+    <script src="/transclusion.js"></script> 
     <script>
     
 var randomDocName = function(length) {
@@ -55,11 +56,19 @@ window.onload = function() {
       console.error(error);
       return;
     }
-
+    //doc.connection.send({task:"enable",service:"stex-termref"});z
     if (doc.created) {
       doc.insert(0, "\\documentclass{article}\n\\begin{document}\nThe \\termref{cd=physics-energy, name=grav-potential}{gravitational\n  potential energy} of a system of masses $\\STRlabel[m1]{m_1}$\nand $\\STRlabel[m2]{M_2}$ at a distance\n$\\STRlabel[r]{r}$ using \\termref{cd=physics-constants,\n name=grav-constant}{gravitational constant} $\\STRlabel[G]{G}$\nis $\\STRlabel[U]{U}$\n\\begin{equation}\n  \\STRcopy{U} = -\\STRcopy{G}\\frac{\\STRcopy{m1}\\STRcopy{m2}}{\\STRcopy{r}}+\\STRlabel[K]{K}\n\\end{equation}\nwhere \\STRcopy{K} is the \\termref{cd=physics-constants,\n  name=integration}{constant of integration}. Choosing the convention\nthat \\STRcopy{K}$=0$ makes calculations simpler, albeit at the cost of\nmaking \\STRcopy{U} negative.\n\\end{document}\n");
     }
-
+    
+    doc.type.tryDeserializeSnapshot(doc.snapshot);
+    window.Transclusion.onInit(doc, "blah");
+		doc.on("submitOp", function(op, oldSnapshot) {
+		   console.log(op);
+		   doc.type.tryDeserializeOp(op)
+		   window.Transclusion.onChange(doc, op, oldSnapshot);
+		});
+    
     doc.attach_ace(editor);
     editor.setReadOnly(false);
   });

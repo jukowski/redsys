@@ -1,5 +1,5 @@
 #!/usr/bin/env coffee
-# :tabSize=4:indentSize=4:
+# :tabSize=2:indentSize=2:
 etherpad = require('share').types.etherpad
 
 Changeset = etherpad.Changeset
@@ -10,16 +10,20 @@ hideReg = /(\\termref\{[^}]+\}\s*\{)([^}]+)(\})/g;
 connid = "";
 
 exports.getServiceURI = () -> "hider";
+		   
 
 exports.replaceTermrefs = (doc) ->
 	text = doc.snapshot.text;
 	builder = Changeset.builder(text.length)
 	pool = new AttributePool()
 	iter = Changeset.opIterator(doc.snapshot.attribs)
+	# why do I need to do that?
 	o = iter.next() unless !iter.hasNext()
 	changed = false
 	last = 0
 	offset = 0
+	
+	# the ID of the attribute that shows that an expression is expanded 
 	exp = "\\*"+Changeset.numToString(doc.snapshot.pool.putAttrib(["hider.expanded",1], true));
 	
 	text.replace(hideReg, (match...) ->

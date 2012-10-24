@@ -1,10 +1,15 @@
 #!/usr/bin/env coffee
 # :tabSize=4:indentSize=4:
 
-etherpad = require('share').types.etherpad
+if WEB?
+    Changeset = window.ShareJS.Changeset
+    AttributePool = window.ShareJS.AttributePool
+    exports = {}
+else
+    etherpad = require('share').types.etherpad
+    Changeset = etherpad.Changeset
+    AttributePool = etherpad.AttributePool
 
-Changeset = etherpad.Changeset
-AttributePool = etherpad.AttributePool
 # modes = require('modes')
 
 hideReg = /(\\STR(label|copy)(?:\[([a-zA-Z0-9_-]+)\])?\s*\{)([^}]+)(\})/g;
@@ -27,7 +32,6 @@ exports.replaceTermrefs = (doc) ->
 
 	text.replace(hideReg, (match...) ->
 		changed = true
-		console.log match
 		idx = match[6]
 		if (o)
 			while offset + o.chars <= idx && iter.hasNext()
@@ -260,6 +264,8 @@ exports.onChange = (doc, op, oldSnapshot) ->
 	exports.updateRange(op, oldSnapshot, doc);
 	exports.replaceTermrefs(doc)
 
+window.Transclusion = exports
+
 initText = "$\\STRlabel[r]{r}$ using \\termref{cd=physics-constants,";
 
 cs = Changeset.unpack(Changeset.builder(0).insert(initText).toString());
@@ -270,13 +276,13 @@ doc.snapshot = snapshot;
 doc.submitOp = (op) ->
 	oldSnapshot = doc.snapshot
 	doc.snapshot = etherpad.apply(doc.snapshot, op);
-	
-#exports.onInit(doc)
-#console.log doc.snapshot
-#exports.toggleHider(doc, 5)
-#console.log "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx"
-#exports.onInit(doc)
-#console.log doc.snapshot
+
+exports.onInit(doc)
+console.log doc.snapshot
+exports.toggleHider(doc, 5)
+console.log "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx"
+exports.onInit(doc)
+console.log doc.snapshot
 
 #op = { changeset: Changeset.builder(doc.snapshot.text.length).keep(6).insert("e").toString(),
 #	pool: new AttributePool() };

@@ -9,3 +9,10 @@ redsys.InitClient = PROTO.Message("redsys.InitClient",{
 		type: function(){return PROTO.string;},
 		id: 1
 	}});
+redsys.SessionId = PROTO.Message("redsys.SessionId",{
+	sessionid: {
+		options: {},
+		multiplicity: PROTO.required,
+		type: function(){return PROTO.string;},
+		id: 1
+	}});
