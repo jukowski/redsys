@@ -8,6 +8,9 @@
 hat = require('hat');
 assert = require 'assert'
 nodeunit = require('nodeunit')
+crypto = require('crypto')
+randstring = require('randstring');
+
 
 initText = "The \\termref{cd=physics-energy, name=grav-potential}{gravitational \n potential energy} \\termref{cd=physics-constants,\n
  name=grav-constant}{gravitational constant}";
@@ -60,6 +63,12 @@ class Range
 	contains : (pos) ->
 		return @from <= pos && pos < @to;
 
+	toEnd : (pos) ->
+		return @to-pos;
+
+	toBegin : (pos) ->
+		return pos-@from;
+
 	split : (pos) ->
 		oldTo = @to
 		@to = pos
@@ -75,6 +84,9 @@ class Range
 	    @from += delta;
 	    @to += delta;
 
+	length : () ->
+		return @to-@from;
+
 	toString : () ->
 		sb = "("+@from+","+@to+")";
 		return sb;
@@ -83,6 +95,17 @@ class RangeManager
 	constructor : () ->
 		@ranges = [];
 		@id2obj = {};
+
+	shiftRight = (idx, len) ->
+		if (idx > @ranges.length-1)
+			return;
+		for i in [idx..(@ranges.length-1)]
+			@ranges[i].move(len);
+		return
+
+	remove = (idx) ->
+		key = @ranges.splice(idx, 0);
+		delete @id2obj[key.getid()];
 
 	addRange : (rng) ->
 		@ranges.push(rng);
@@ -95,6 +118,13 @@ class RangeManager
 			@ranges[n] = t;
 			n--;
 		@id2obj[rng.getid()] = rng;
+
+	getRangeById : (id) ->
+		return @id2obj[id];
+
+	shiftRange : (id, len) ->
+		idx = @getIndexById(id);
+		shiftRight(idx, len);				
 
 	# creates a new range with limits [from, to]. Returns it's ID
 	markRange : (from, to) ->
@@ -114,11 +144,6 @@ class RangeManager
 			index++;
 		return [null, null];
 	
-	shiftRight : (idx, len) ->
-		for i in [idx..(@ranges.length-1)]
-			@ranges[i].move(len);
-		return
-
 	getIndexById : (id) ->
 		rng = @id2obj[id];
 		idx = 0
@@ -127,11 +152,13 @@ class RangeManager
 				return idx
 			idx++;
 		return null
-	
+
 	incLength : (id, len) ->
 		idx = @getIndexById(id);
 		@ranges[idx].incLength(len);
-		@shiftRight(idx+1, len);
+		shiftRight(idx+1, len);
+		if (@ranges[idx].length == 0)
+			remove(idx);
 
 	split : (pos) ->
 		for range in @ranges
@@ -151,6 +178,7 @@ class RangeManager
 # converts from offset <-> (row, col)
 class LineManager
 
+	# given a string, computes the lengths of lines 
 	computeLen = (line) ->
 		lines = line.split("\n");
 		if (lines.length == 0)
@@ -161,8 +189,7 @@ class LineManager
 		for idx in [0..(lines.length-2)]
 			res.push(lines[idx].length+1);
 		lastlen = lines[lines.length-1].length
-		if (lastlen > 0)
-			res.push(lastlen)
+		res.push(lastlen)
 		return res
 
 	constructor : (initText = "") ->
@@ -180,12 +207,27 @@ class LineManager
 		# we can assert this because LineManager manages the whole interval
 		assert(id!=null && inside);
 		@rm.incLength(id, lens[0]);
+		if (lens.length == 1)
+			return;
 		done = lens[0];
 		lastSegment = id;
 		for lidx in [1..(lens.length-1)]
 			nid = @rm.split(pos+done);
 			@rm.incLength(nid, lens[lidx])
 			done += lens[lidx];
+
+	remove : (pos, len) ->
+		while len > 0
+			[id, inside] = @rm.findLeftGreater(pos)
+			range = @rm.getRangeById(id);
+			if inside
+				maxLen = Math.min(range.toEnd(pos), len);
+				@rm.incLength(id, -maxLen);
+			else
+				maxLen = Math.min(range.toBegin(pos), len);
+				@rm.shiftRange(id, -maxLen);
+			len -= maxLen;
+
 
 	toString : () ->
 		return @rm.toString()
@@ -211,32 +253,40 @@ exports.Test1 = (test) ->
 	test.equal(index, null); test.equal(inside, null);
 	test.done();
 
+charset = "a\nbc\n";
+
+String.prototype.insert = (index, string) ->
+  if (index > 0)
+    return this.substring(0, index) + string + this.substring(index, this.length);
+  else
+    return string + this;
+
+escape = (str) ->
+  return str.replace(/\n/g,"\\n");	
+
+exports.Test3 = (test) ->
+	initStr = "\nccabca\nab";
+	lm = new LineManager(initStr);
+	q = " \n\n"
+	loc = 8
+	lm.insert(loc, q);
+	initStr = initStr.insert(loc, q);
+	lm2 = new LineManager(initStr);
+	test.equal(lm.toString(), lm2.toString());
+	test.done();
+
 Test2 = (test) ->
-	lm = new LineManager("blah\n\ntest\n");
-	console.log("before", lm.toString());
-	lm.insert(1, "qw\nt\ny");
-	lm.insert(6, "a");
-	console.log(lm.toString());
-	#test.done();
+	initStr = randstring.withCharset(charset, 50);
+	lm = new LineManager(initStr);
+	for times in [0..10]
+		q = randstring.withCharset(charset, 20);
+		loc = randstring.randrange(initStr.length);
+		lm.insert(loc, q);
+		initStr = initStr.insert(loc, q);
+	lm2 = new LineManager(initStr);
+	test.equal(lm.toString(), lm2.toString());
 
-Test2();
-#cs = Changeset.unpack(Changeset.builder(0).insert(initText).toString());
-#snapshot = { text: cs.charBank, attribs: cs.ops, pool: new AttributePool() }
-
-#doc = {};
-#doc.snapshot = snapshot;
-#doc.submitOp = (op) ->
-#	oldSnapshot = doc.snapshot
-#	doc.snapshot = etherpad.apply(doc.snapshot, op);
-#console.log("test");
-#exports.onInit(doc)
-#console.log doc.snapshot
-#exports.toggleHider(doc, 5)
-#console.log "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx"
-#exports.onInit(doc)
-#console.log doc.snapshot
-
-#op = { changeset: Changeset.builder(doc.snapshot.text.length).keep(6).insert("e").toString(),
-#	pool: new AttributePool() };
-#doc.submitOp(op);
-
+exports.Test2 = (test) ->
+	for run in [0..500]
+		Test2(test);
+	test.done();
