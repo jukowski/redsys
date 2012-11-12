@@ -6,6 +6,8 @@ extend = require("deep-extend")
 path = require("path")
 express = require('express');
 app = express();
+bcadapter = require('./bcadapter.coffee');
+useragentgen = require('share/src/server/useragent.coffee');
 
 createFS = (options) ->
   return switch options.type
@@ -29,10 +31,17 @@ module.exports = (_opt) ->
 
 options =
   db: {type: 'none'},
-  browserChannel: {cors: '*'},
+  browserChannel: null,
 
 server = http.createServer(app);
 app.use(express.static('../public'));
 sharejs.attach(app, options);
+
+model = sharejs.createModel(options)
+useragent = useragentgen(model, options);
+
+options.browserChannel ?= {}
+options.browserChannel.server = app
+app.use bcadapter(useragent, options.browserChannel)
 
 server.listen(8002);
