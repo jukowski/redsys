@@ -27,6 +27,14 @@ body {
 	bottom: 0;
 	left: 0;
 	right: 0;
+	width: 50%;
+}
+
+#result {
+	position: absolute;
+	left: 50%;
+	width: 50%;
+	top: 30px;
 }
 
 #htext a {

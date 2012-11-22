@@ -1,70 +1,95 @@
 <html>
-  <head>
-    <link href="ace/style.css" rel="stylesheet" type="text/css">
-    <title>Code editor</title>
-  </head>
+<head>
+  <link href="ace/style.css" rel="stylesheet" type="text/css">
+  <title>Code editor</title>
+</head>
 
-  <body>
-    <div id="header">
-      <div id="htext">
-        Editing <b id='docname'>...</b>
-        <a style="padding-left: 50px;" href="/code.html">New</a>
-      </div>
-        
+<body>
+  <div id="header">
+    <div id="htext">
+      Editing <b id='docname'>...</b>
+      <a style="padding-left: 50px;" href="/code.html">New</a>
     </div>
 
-    <div id="editor">Loading...</div>
-    <script src="/lib/ace/ace.js"></script>
-    <script src="/lib/ace/mode-latex.js"></script>
-    <script src="/lib/ace/theme-idle_fingers.js"></script>
-    <script src="/channel/bcsocket.js"></script>
-    <script src="/share/AttributePool.js"></script>
-    <script src="/share/Changeset.js"></script>
-    <script src="/share/share.uncompressed.js"></script>
-    <script src="/share/ace.js"></script> 
-    <script>
-    
-var randomDocName = function(length) {
-  var chars, x;
-  if (length == null) {
-    length = 10;
-  }
-  chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
-  var name = [];
-  for (x = 0; x < length; x++) {
-    name.push(chars[Math.floor(Math.random() * chars.length)]);
-  }
-  return name.join('');
-};
 
-window.onload = function() {
-  var editor = ace.edit("editor");
+  </div>
 
-  editor.setReadOnly(true);
-  editor.getSession().setUseSoftTabs(true);
-  editor.getSession().setTabSize(2);
-  editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
-  editor.setTheme("ace/theme/idle_fingers");
+  <div id="editor">Loading...</div>
+  <div id="result">Loading...</div>
+  <script src="/lib/ace/ace.js"></script>
+  <script src="/lib/ace/mode-latex.js"></script>
+  <script src="/lib/ace/theme-idle_fingers.js"></script>
+  <script src="/channel/bcsocket.js"></script>
+  <script src="/share/AttributePool.js"></script>
+  <script src="/share/Changeset.js"></script>
+  <script src="/share/share.uncompressed.js"></script>
+  <script src="/share/ace.js"></script> 
+  <script>
 
-  var docName = "code:test";
-
-  var span = document.getElementById('docname').innerText = docName;
-
-  sharejs.open(docName, 'etherpad', function(error, doc) {
-    if (error) {
-      console.error(error);
-      return;
+  var randomDocName = function(length) {
+    var chars, x;
+    if (length == null) {
+      length = 10;
     }
-
-    if (doc.created) {
-      doc.insert(0, "\\documentclass{article}\n\\begin{document}\nThe \\termref{cd=physics-energy, name=grav-potential}{gravitational\n  potential energy} of a system of masses $\\STRlabel[m1]{m_1}$\nand $\\STRlabel[m2]{M_2}$ at a distance\n$\\STRlabel[r]{r}$ using \\termref{cd=physics-constants,\n name=grav-constant}{gravitational constant} $\\STRlabel[G]{G}$\nis $\\STRlabel[U]{U}$\n\\begin{equation}\n  \\STRcopy{U} = -\\STRcopy{G}\\frac{\\STRcopy{m1}\\STRcopy{m2}}{\\STRcopy{r}}+\\STRlabel[K]{K}\n\\end{equation}\nwhere \\STRcopy{K} is the \\termref{cd=physics-constants,\n  name=integration}{constant of integration}. Choosing the convention\nthat \\STRcopy{K}$=0$ makes calculations simpler, albeit at the cost of\nmaking \\STRcopy{U} negative.\n\\end{document}\n");
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
+    var name = [];
+    for (x = 0; x < length; x++) {
+      name.push(chars[Math.floor(Math.random() * chars.length)]);
     }
+    return name.join('');
+  };
 
-    doc.attach_ace(editor);
-    editor.setReadOnly(false);
-  });
-};
-    </script>
-  </body>
+  window.onload = function() {
+    var editor = ace.edit("editor");
+
+    editor.setReadOnly(true);
+    editor.getSession().setUseSoftTabs(true);
+    editor.getSession().setTabSize(2);
+    editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
+    editor.setTheme("ace/theme/idle_fingers");
+
+    var docName = "test:doc";
+
+    var span = document.getElementById('docname').innerText = docName;
+
+    sharejs.open(docName, 'etherpad', function(error, doc) {
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      if (doc.created) {
+        doc.insert(0, "\\documentclass{article}\n\\begin{document}\n Hello World!\n\\end{document}\n");
+      }
+
+      doc.attach_ace(editor);
+      editor.setReadOnly(false);
+    });
+
+    sharejs.open(docName+".omdoc", 'etherpad', function(error, doc) {
+      if (error) {
+        console.error(error);
+        return;
+      }
+      snap = doc.snapshot.text;
+      window.omdoc = doc;
+      doc.on('insert', function(pos, text) {
+        var output = [snap.slice(0, pos), text, snap.slice(pos)].join('');
+        res = document.getElementById('result');
+        res.innerHTML = output;
+        snap = output;
+      });
+      doc.on('delete', function(pos, text) {
+        var output = [snap.slice(0, pos), snap.slice(pos+text.length)].join('');
+        res = document.getElementById('result');
+        res.innerHTML = output;
+        snap = output;
+      });
+      res = document.getElementById('result');
+      res.innerHTML = snap;
+  })  
+  };
+  </script>
+</body>
 </html>  
 
