@@ -16,6 +16,7 @@
 
   <div id="editor">Loading...</div>
   <div id="result">Loading...</div>
+  <div id="err">Loading...</div>
   <script src="/lib/ace/ace.js"></script>
   <script src="/lib/ace/mode-latex.js"></script>
   <script src="/lib/ace/theme-idle_fingers.js"></script>
@@ -59,37 +60,44 @@
       }
 
       if (doc.created) {
-        doc.insert(0, "\\documentclass{article}\n\\begin{document}\n Hello World!\n\\end{document}\n");
+        doc.insert(0, "\\documentclass{omdoc}\n\\usepackage{stex}\n\\usepackage{eurosym,amssymb,amstext,url}\n\\defpath{STC}{..\x2F..\x2F..}\n\\defpath{KWARCslides}{\\STC{slides}}\n\\defpath{SiSsI}{\\STC{sissi}}\n%\\input{\\STC{lib\x2FWApersons}}\n\n\\begin{document}\n\\baseURI[\x2Fsissi\x2Fwinograd\x2Fcds]{http:\x2F\x2F192.168.111.130\x2Fstc\x2Fsissi\x2Fwinograd\x2Fcds}\n\n\\begin{omgroup}[id=linearextrapolation.omdoc,creators=miko,date=2008-08-26]{Linear Extrapolation}\n\\begin{omtext}Forecasting the future by Linear Extrapolation\\end{omtext}\n\\begin{module}[id=linearextrapolation,title=Forecasting the future by Linear\n  Extrapolation]\n\\importmodule[\\SiSsI{winograd\x2Fcds\x2Flagrangeinterpolation}]{lagrangeinterpolation}\n\\importmodule[\\SiSsI{winograd\x2Fcds\x2Fseries}]{series}\n   \n\\begin{symboldec}[name=extrapolation,title=Linear Extrapolation]\n  \\symtype{sts}{\\fntype{\\series,\\point}{\\quantity}}\n\\end{symboldec} \n\n\\begin{definition}[id=linear-extrapolation.def,subject=Linear Extrapolation,functions=s]\n  \\adefi{Linear extrapolation}{extrapolation} means creating a tangent line at the end of\n  the known data and extending it beyond that limit. To extrapolate a time series $s$ at\n  point $t$, let the points $q$ and $l$ nearest to $h$. The extrapolant $e$ is defined as\n  $s(l)+\\atimes{\\frac{t-h}{l-h},\\aminus{s(l)}{s(h)}}$.\n\\end{definition}    \n\n\\begin{assertion}[type=observation]\n  Linear extrapolation will only provide good results when used to extend the graph of an\n  approximately linear function or not too far beyond the known data.\n\\end{assertion}\n\n\\begin{assertion}[type=theorem]\n  Linear extrapolation is identical to linear interpolation if the extrapolated point is\n  between the point used in the extrapolation.\n\\end{assertion}\n\\end{module}\n\n\\begin{view}[load=\\SiSsI{winograd\x2Fcds\x2Fprognosis}]{prognosis}{linearextrapolation}\n  \\tassign{prognosisfunction}{extrapolation}\n\\end{view}\n\\end{omgroup}\n%%% Local Variables: \n%%% mode: latex\n%%% TeX-master: \"all\"\n%%% End: \n\n\\end{document}\n% LocalWords:  omgroup linearextrapolation.omdoc miko omtext omtext symboldec\n% LocalWords:  linearextrapolation lagrangeinterpolation lagrangeinterpolation\n% LocalWords:  symtype sts fntype atimes aminus tassign prognosisfunction");
       }
 
       doc.attach_ace(editor);
       editor.setReadOnly(false);
     });
 
-    sharejs.open(docName+".omdoc", 'etherpad', function(error, doc) {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      snap = doc.snapshot.text;
-      window.omdoc = doc;
-      doc.on('insert', function(pos, text) {
-        var output = [snap.slice(0, pos), text, snap.slice(pos)].join('');
-        res = document.getElementById('result');
-        res.innerHTML = output;
-        snap = output;
-      });
-      doc.on('delete', function(pos, text) {
-        var output = [snap.slice(0, pos), snap.slice(pos+text.length)].join('');
-        res = document.getElementById('result');
-        res.innerHTML = output;
-        snap = output;
-      });
-      res = document.getElementById('result');
-      res.innerHTML = snap;
-  })  
-  };
-  </script>
+function putText(_id) {
+  var id = _id;
+  return function(error, doc) {
+    if (error) {
+      console.error(error);
+      return;
+    }
+    var snap = doc.snapshot.text;
+    window.omdoc = doc;
+    doc.on('insert', function(pos, text) {
+      var output = [snap.slice(0, pos), text, snap.slice(pos)].join('');
+      res = document.getElementById(id);
+      res.innerHTML = "<pre>"+output+"</pre>";
+      snap = output;
+    });
+    doc.on('delete', function(pos, text) {
+      var output = [snap.slice(0, pos), snap.slice(pos+text.length)].join('');
+      res = document.getElementById(id);
+      res.innerHTML = "<pre>"+output+"</pre>";
+      snap = output;
+    });
+    res = document.getElementById(id);
+    res.innerHTML = "<pre>"+snap+"</pre>";
+
+  }
+}
+
+sharejs.open(docName+".omdoc", 'etherpad', putText("result"));  
+sharejs.open(docName+".err", 'etherpad', putText("err"));
+};
+</script>
 </body>
 </html>  
 

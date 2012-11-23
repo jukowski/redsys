@@ -24,14 +24,20 @@ exports.getServiceURI = () -> "latexml";
 getDocText = (doc) ->
     return doc.snapshot.text
 
-
 sendRequest = (data, callback) ->
+    console.log(data);
     req = request(connOpts, (err, _, body) ->
         if err
             return callback(err);
         running = false;
         result = JSON.parse(body);
-        callback(err, result.result);
+        if typeof result.result == "undefined"
+            result.result ="";
+        if typeof result.log == "undefined"
+            result.log ="";
+        if typeof result.status == "undefined"
+            result.status ="";
+        callback(err, result);
         ).form(data);
     return;
 
@@ -56,37 +62,54 @@ getOrCreate = (docName, callback) ->
                 return callback(err) if err;
                 model.getSnapshot(docName, callback);
                 )
+
         else
             callback(null, doc);
         )
 
-updateOutput = (text, outfile, callback) ->
+updateOutput = (text, infile, callback) ->
     if running
         return callback();
+    omdocFile = infile+".omdoc";
+    errFile = infile+".err";
     running = true;
-    _snap = null;
-    _newRes = null;
+    omdocSnap = null;
+    errSnap = null;
+    result = null;
+
+    pm = /^([\s\S]*)\\begin{document}([\s\S]*)\\end{document}([\s\S]*)$/.exec(text);
+    if (pm.length > 0)
+        preamble = pm[1];
+        text = pm[2];
+    else
+        preamble = "";
+    console.log("running");
     async.waterfall([
-        (callback) -> getOrCreate(outfile, callback),
-        (snapshot, callback) -> _snap = snapshot; sendRequest({tex: text, profile:"planetmath"}, callback),
-        (newRes, callback) -> _newRes = newRes; getOrCreate(outfile, callback),
-        (snapshot, callback) -> _snap = snapshot; diffChangeset(getDocText(_snap), _newRes, callback),
-        (change, callback) -> model.applyOp(outfile, {"op": {"changeset": change, "pool": new AttributePool()}, "v": _snap.v}, callback),
+        (callback) -> getOrCreate(omdocFile, callback),
+        (snapshot, callback) -> omdocSnap = snapshot; getOrCreate(errFile, callback),
+        (snapshot, callback) -> errSnap = snapshot; sendRequest({tex: text, preamble : "literal:"+preamble, profile:"stex-module"}, callback), 
+        (newRes, callback) -> result = newRes; diffChangeset(getDocText(omdocSnap), result.result, callback),
+        (omdocChange, callback) -> model.applyOp(omdocFile, {"op": {"changeset": omdocChange, "pool": new AttributePool()}, "v": omdocSnap.v}, callback),
+        (newVer, callback) -> err = result.status+"\n"+result.log; console.log("err=",err); diffChangeset(getDocText(errSnap), err, callback),
+        (errChange, callback) -> model.applyOp(errFile, {"op": {"changeset": errChange, "pool": new AttributePool()}, "v": errSnap.v}, callback),
         (newVer, callback) ->  callback()
     ], (err) ->
+        if err
+            console.log("Error found ", err);
+        console.log("/running");
         running = false;
         callback(err));
 
 exports.onInit = (doc, id, callback) ->
-    outfile = "test:doc.omdoc"
-    updateOutput(getDocText(doc), outfile, callback);
+    infile = "test:doc"
+    updateOutput(getDocText(doc), infile, callback);
         
 exports.onEvent = (doc, name, evt) ->
 
     
 exports.onChange = (doc, op, oldSnapshot, callback) ->
-    outfile = "test:doc.omdoc"
-    updateOutput(getDocText(doc), outfile, callback);
+    infile = "test:doc"
+    updateOutput(getDocText(doc), infile, callback);
 
 _test = () ->
     sharejs = require("share").server;
@@ -97,7 +120,7 @@ _test = () ->
     
     model = sharejs.createModel(options)
     exports.setup(model);
-    initText = "\\section{Testing}";
+    initText = "\\documentclass{omdoc}\n\\usepackage{stex}\n\\usepackage{eurosym,amssymb,amstext,url}\n\\defpath{STC}{..\x2F..\x2F..}\n\\defpath{KWARCslides}{\\STC{slides}}\n\\defpath{SiSsI}{\\STC{sissi}}\n%\\input{\\STC{lib\x2FWApersons}}\n\n\\begin{document}\n\\baseURI[\x2Fsissi\x2Fwinograd\x2Fcds]{http:\x2F\x2F192.168.111.130\x2Fstc\x2Fsissi\x2Fwinograd\x2Fcds}\n\n\n\\end{document}\n% LocalWords:  omgroup linearextrapolation.omdoc miko omtext omtext symboldec\n% LocalWords:  linearextrapolation lagrangeinterpolation lagrangeinterpolation\n% LocalWords:  symtype sts fntype atimes aminus tassign prognosisfunction";
     cs = Changeset.builder(0).insert(initText).toString();
     cs1 = Changeset.builder(initText.length).keep(10).insert("x").toString();
     ap = new AttributePool();
@@ -117,4 +140,4 @@ _test = () ->
             console.log(err) if err;
         );
 
-#_test();
+_test();

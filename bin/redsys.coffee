@@ -48,7 +48,8 @@ updateCallback = (name) ->
 
 createCallback = (name, type, meta) ->
   if (/\.omdoc/.exec(name))
-    # we're already in the omdoc file
+    return;
+  if (/\.err/.exec(name))
     return;
   v = 0;
   async.waterfall([
