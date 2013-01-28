@@ -1,7 +1,13 @@
 <html>
   <head>
     <link href="ace/style.css" rel="stylesheet" type="text/css">
+    <link href="jquery/css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
+    <script type="text/javascript"  src="jquery/jquery.js"></script>
+    <script type="text/javascript"  src="jquery/jquery-ui.js"></script>
+    <script type="text/javascript"  src="async.js"></script>
+    <script type="text/javascript"  src="sallyjs/core.js"></script>
+    <script type="text/javascript"  src="sallyjs/acealex.js"></script>
   </head>
 
   <body>
@@ -10,10 +16,10 @@
         Editing <b id='docname'>...</b>
         <a style="padding-left: 50px;" href="/code.html">New</a>
       </div>
-        
     </div>
 
     <div id="editor">Loading...</div>
+
     <script src="/lib/ace/ace.js"></script>
     <script src="/lib/ace/mode-latex.js"></script>
     <script src="/lib/ace/theme-idle_fingers.js"></script>
@@ -22,8 +28,14 @@
     <script src="/share/Changeset.js"></script>
     <script src="/share/share.uncompressed.js"></script>
     <script src="/share/ace.js"></script> 
+
     <script>
-    
+    $(function() {
+      window.sally = new window.Sally();
+      sally.init(function() {
+      });
+    });
+        
 var randomDocName = function(length) {
   var chars, x;
   if (length == null) {
@@ -39,6 +51,7 @@ var randomDocName = function(length) {
 
 window.onload = function() {
   var editor = ace.edit("editor");
+  Sally.aceAlexTextAdaptor(sally, editor);
 
   editor.setReadOnly(true);
   editor.getSession().setUseSoftTabs(true);
@@ -57,7 +70,7 @@ window.onload = function() {
     }
 
     if (doc.created) {
-      doc.insert(0, "\\documentclass{article}\n\\begin{document}\nThe \\termref{cd=physics-energy, name=grav-potential}{gravitational\n  potential energy} of a system of masses $\\STRlabel[m1]{m_1}$\nand $\\STRlabel[m2]{M_2}$ at a distance\n$\\STRlabel[r]{r}$ using \\termref{cd=physics-constants,\n name=grav-constant}{gravitational constant} $\\STRlabel[G]{G}$\nis $\\STRlabel[U]{U}$\n\\begin{equation}\n  \\STRcopy{U} = -\\STRcopy{G}\\frac{\\STRcopy{m1}\\STRcopy{m2}}{\\STRcopy{r}}+\\STRlabel[K]{K}\n\\end{equation}\nwhere \\STRcopy{K} is the \\termref{cd=physics-constants,\n  name=integration}{constant of integration}. Choosing the convention\nthat \\STRcopy{K}$=0$ makes calculations simpler, albeit at the cost of\nmaking \\STRcopy{U} negative.\n\\end{document}\n");
+      doc.insert(0, "\\begin{omgroup}[id=money-omdoc]{A basic Theory of Money}\n\n\\begin{module}[id=money]\n\\importmodule[\\KWARCslides{units\x2Fen\x2Fquantities}]{quantities}\n\n\\symdef[title=Monetary Unit]{monetaryunit}{\\text{MU}}\n\\symdef[title=Monetary Quantity]{monetaryquantity}{\\text{MQ}}\n\n\\begin{axiom}\n  Monetary quantities are quantities\n  \\[\\sseteq\\monetaryquantity\\quantity\\]\n\\end{axiom}\n\n\\begin{definition}\n  Scalars combine with monetary units to \\adefii{monetary quantities}{monetary}{quantity}.\n\\[\\foralS{x}\\RealNumbers{\\foralS{u}\\monetaryunit{\\inset{\\quantityof{x}{u}}\\monetaryquantity}}\\]\n\\end{definition}\n\n\\symdef[title=United states dollar,descriptionThe official tender of the USA]{usdollar}{\\$}\n\\symtype[usdollar]{sts}{\\monetaryunit}\n\n\\symdef[title=The Euro,description=The official tender of the eurozone]{euro}{\\text{\\officialeuro}}\n\\symtype[euro]{sts}{\\monetaryunit}\n\n\\begin{omtext}\n  As a rule of thumb, $\\quantityof{1}{\\euro}$ is about $\\quantityof{1.3}{\\usdollar}$.\n\\end{omtext}\n\n\\end{module}\n\\end{omgroup}\n%%% Local Variables: \n%%% mode: latex\n%%% TeX-master: \"all\"\n%%% End: \n\n% LocalWords:  omgroup money-omdoc symdef monetaryunit symboldec sseteq symtype\n% LocalWords:  monetaryquantity usdollar sts officialeuro quantityof omtext\n% LocalWords:  KWARCslides");
     }
 
     doc.attach_ace(editor);

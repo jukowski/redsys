@@ -11,6 +11,14 @@ body {
 	background-color: black;
 }
 
+#sally {
+	position: relative;
+	top: 400;
+	left:800;
+	z-index: 100;
+	background-color: white;
+}
+
 #htext {
 	line-height: 30px;
 	vertical-align: middle;
