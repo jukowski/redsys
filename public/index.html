@@ -2,11 +2,11 @@
   <head>
     <link href="ace/style.css" rel="stylesheet" type="text/css">
     <link href="jquery/css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet" type="text/css">
-    <link href="jquery/css/jqtree.css" rel="stylesheet" type="text/css">
+    <link href="jstree/themes/classic/style.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
     <script type="text/javascript"  src="jquery/jquery.js"></script>
     <script type="text/javascript"  src="jquery/jquery-ui.js"></script>
-    <script type="text/javascript"  src="jquery/tree.jquery.js"></script>
+    <script type="text/javascript"  src="jstree/jquery.jstree.js"></script>
     <script type="text/javascript"  src="async.js"></script>
     <script type="text/javascript"  src="sallyjs/core.js"></script>
     <script type="text/javascript"  src="sallyjs/acealex.js"></script>
@@ -76,12 +76,13 @@ function createLabel(comp) {
       for (var i=0; i<root.length; i++) {
         if (typeof root[i] == "object") {
           result.push({
-            "label" : createLabel(components[root[i].id]),
-            "children" : createData(root[i].c, components)
+            "data" : createLabel(components[root[i].id]),
+            "children" : createData(root[i].c, components),
+            "state" : "open"
           });
         } else {
           if (components[root[i]].type != "end")
-            result.push({"label" : createLabel(components[root[i]])});
+            result.push({"data" : createLabel(components[root[i]])});
         }
       }
       return result;
@@ -91,7 +92,7 @@ function refreshTree(doc) {
     var components = doc.snapshot.components;
     var tree = doc.snapshot.tree;
     var data = createData(tree, components);
-    $("#outline-tree").tree({data : data});
+    $("#outline-tree").jstree({"json_data": {"data" : data }, "plugins" : ["themes", "json_data", "ui"]});
 }
 
 function openOutline() {

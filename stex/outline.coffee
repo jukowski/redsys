@@ -52,7 +52,7 @@ solve = (a, begin, end, cache = {}) ->
 		res2 = solve(a, s+1, end)
 		res = 
 			cost: res1.cost + res2.cost, 
-			sol: extend(cloner(res1.res, {}), res2.res)
+			set: extend(cloner(res1.set, {}), res2.set)
 		sol = analyze_sol(sol, res);
 
 	cache[probID] = sol
@@ -99,8 +99,8 @@ assembleTree = (components) ->
 structChanges = (oldComponents, newComponents) ->
 	return true if oldComponents.length != newComponents.length
 	for component, i in oldComponents
-		return true if component.type != newComponents.type
-		return true if component.id != newComponents.id
+		return true if component.type != newComponents[i].type
+		return true if component.id != newComponents[i].id
 	false
 
 resetJSONFile = (model, file, contents, callback) ->
@@ -118,6 +118,7 @@ exports.onUpdate = (context, delta) ->
 	if (structChanges(context.components, components))
 		newTree = assembleTree(components);
 		resetJSONFile(context["model"], context["output"], newTree);
+		context.components = components
 
 
 exports.onInit = (model, params, callback) ->
