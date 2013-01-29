@@ -2,9 +2,11 @@
   <head>
     <link href="ace/style.css" rel="stylesheet" type="text/css">
     <link href="jquery/css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet" type="text/css">
+    <link href="jquery/css/jqtree.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
     <script type="text/javascript"  src="jquery/jquery.js"></script>
     <script type="text/javascript"  src="jquery/jquery-ui.js"></script>
+    <script type="text/javascript"  src="jquery/tree.jquery.js"></script>
     <script type="text/javascript"  src="async.js"></script>
     <script type="text/javascript"  src="sallyjs/core.js"></script>
     <script type="text/javascript"  src="sallyjs/acealex.js"></script>
@@ -19,6 +21,7 @@
     </div>
 
     <div id="editor">Loading...</div>
+    <div id="outline"><div id="outline-tree"></div></div>
 
     <script src="/lib/ace/ace.js"></script>
     <script src="/lib/ace/mode-latex.js"></script>
@@ -27,6 +30,7 @@
     <script src="/share/AttributePool.js"></script>
     <script src="/share/Changeset.js"></script>
     <script src="/share/share.uncompressed.js"></script>
+    <script type="text/javascript"  src="/share/json.uncompressed.js"></script>
     <script src="/share/ace.js"></script> 
 
     <script>
@@ -49,6 +53,58 @@ var randomDocName = function(length) {
   return name.join('');
 };
 
+var docName = "code:test";
+
+function createLabel(comp) {
+  if (comp.id == "symdef") {
+    return "sym ["+comp.params[0]+"]";
+  }
+
+  if (comp.id == "module") {
+    return comp.params[0];
+  }
+
+  if (comp.id == "omgroup") {
+    return comp.params[0];
+  }
+
+  return comp.id;
+}
+
+    function createData(root, components) {
+      var result = [];
+      for (var i=0; i<root.length; i++) {
+        if (typeof root[i] == "object") {
+          result.push({
+            "label" : createLabel(components[root[i].id]),
+            "children" : createData(root[i].c, components)
+          });
+        } else {
+          if (components[root[i]].type != "end")
+            result.push({"label" : createLabel(components[root[i]])});
+        }
+      }
+      return result;
+    }
+
+function refreshTree(doc) {
+    var components = doc.snapshot.components;
+    var tree = doc.snapshot.tree;
+    var data = createData(tree, components);
+    $("#outline-tree").tree({data : data});
+}
+
+function openOutline() {
+  sharejs.open(docName+".outline", 'json', function(error, doc) {
+    doc.on("change", function (op) {
+      newSnapshot = doc.type.apply(doc.snapshot, op);
+      doc.snapshot = newSnapshot;
+      refreshTree(doc);
+    });
+    refreshTree(doc);
+  });
+}
+
 window.onload = function() {
   var editor = ace.edit("editor");
   Sally.aceAlexTextAdaptor(sally, editor);
@@ -59,7 +115,6 @@ window.onload = function() {
   editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
   editor.setTheme("ace/theme/idle_fingers");
 
-  var docName = "code:test";
 
   var span = document.getElementById('docname').innerText = docName;
 
@@ -68,6 +123,7 @@ window.onload = function() {
       console.error(error);
       return;
     }
+    $.get("/enable/stex-outline", {"input": docName, "output": docName+".outline"});
 
     if (doc.created) {
       doc.insert(0, "\\begin{omgroup}[id=money-omdoc]{A basic Theory of Money}\n\n\\begin{module}[id=money]\n\\importmodule[\\KWARCslides{units\x2Fen\x2Fquantities}]{quantities}\n\n\\symdef[title=Monetary Unit]{monetaryunit}{\\text{MU}}\n\\symdef[title=Monetary Quantity]{monetaryquantity}{\\text{MQ}}\n\n\\begin{axiom}\n  Monetary quantities are quantities\n  \\[\\sseteq\\monetaryquantity\\quantity\\]\n\\end{axiom}\n\n\\begin{definition}\n  Scalars combine with monetary units to \\adefii{monetary quantities}{monetary}{quantity}.\n\\[\\foralS{x}\\RealNumbers{\\foralS{u}\\monetaryunit{\\inset{\\quantityof{x}{u}}\\monetaryquantity}}\\]\n\\end{definition}\n\n\\symdef[title=United states dollar,descriptionThe official tender of the USA]{usdollar}{\\$}\n\\symtype[usdollar]{sts}{\\monetaryunit}\n\n\\symdef[title=The Euro,description=The official tender of the eurozone]{euro}{\\text{\\officialeuro}}\n\\symtype[euro]{sts}{\\monetaryunit}\n\n\\begin{omtext}\n  As a rule of thumb, $\\quantityof{1}{\\euro}$ is about $\\quantityof{1.3}{\\usdollar}$.\n\\end{omtext}\n\n\\end{module}\n\\end{omgroup}\n%%% Local Variables: \n%%% mode: latex\n%%% TeX-master: \"all\"\n%%% End: \n\n% LocalWords:  omgroup money-omdoc symdef monetaryunit symboldec sseteq symtype\n% LocalWords:  monetaryquantity usdollar sts officialeuro quantityof omtext\n% LocalWords:  KWARCslides");
@@ -76,6 +132,8 @@ window.onload = function() {
     doc.attach_ace(editor);
     editor.setReadOnly(false);
   });
+
+  setTimeout(openOutline, 2000);
 };
     </script>
   </body>
