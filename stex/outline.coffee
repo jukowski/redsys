@@ -7,7 +7,7 @@ exports.getServiceURI = () -> "stex-outline";
 regexps = [ 
 	{id: "omgroup", begin: /\\begin\{omgroup\}(?:\[id=([\S]+)\])?\{([\S ]+)\}/g, end: /\\end\{omgroup\}/g },
 	{id: "module", begin: /\\begin\{module\}(?:\[id=([\S]+)\])?/g, end: /\\end\{module\}/g },
-	{id: "symdef", regexp: /\\symdef(?:\[title=([\S ]+)\])?/g},
+	{id: "symdef", regexp: /\\symdef(?:\[title=([a-zA-Z-_0-9 ]+)[\S ]*\])?/g},
 ]
 
 extend = (obj, mixin) ->
@@ -101,6 +101,7 @@ structChanges = (oldComponents, newComponents) ->
 	for component, i in oldComponents
 		return true if component.type != newComponents[i].type
 		return true if component.id != newComponents[i].id
+		return true if component.params[0]? && component.params[0]!=newComponents[i].params[0]
 	false
 
 resetJSONFile = (model, file, contents, callback) ->
