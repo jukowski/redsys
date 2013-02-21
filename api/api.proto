@@ -1,9 +1,0 @@
-package redsys;
-
-message InitClient {
-  optional string name = 1;
-}
-
-message SessionId {
-  required string sessionid = 1;
-}
