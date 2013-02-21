@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "dependencies": {
     "express": "3.0.0",
-    "share" : "0.5.0",
+    "share" : "*",
     "async" : "0.1.22",
     "deep-extend" : "0.2.2",
     "vfs-local" : "0.3.10",
-    "browserchannel" : "0.4.2",
-    "hat" : "0.0.3 "
+    "hat" : "0.0.3 ",
+    
   }
 }
