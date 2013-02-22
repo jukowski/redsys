@@ -1,8 +1,14 @@
+default_text_format = "etherpad";
+
 sharejs = require("share").server;
+Changeset = require("share").types.etherpad.Changeset;
+AttributePool = require("share").types.etherpad.AttributePool;
 projects = {};
 hat = require("hat");
 async = require("async");
 S = require("string");
+
+created = {};
 
 agentToProject = {};
 model = null
@@ -15,17 +21,19 @@ handle_redsys = (agent, msg) ->
 		console.log(agent.sessionId, "assigned to ", msg.project_id);
 		agentToProject[agent.headers.cookie] = { project: msg.project_id, vfs: projects[msg.project_id] };
 
+
+
 updateIfNecessary = (docName, initValueCallback, callback) ->
-	console.log("----", docName);
 	async.waterfall [
-		(callback) -> model.getSnapshot(docName, callback);
-		(doc, callback) -> console.log("doc=", doc); initValueCallback(callback);
-		(doc, callback) -> model.applyOp(docName, {p:0, i: doc}, callback());
-		(v, callback) -> console.log("v=",v); callback();
+		(callback) -> model.create(docName, default_text_format, {}, callback);
+		(callback) -> initValueCallback(callback);
+		(doc, callback) ->
+			op = {};
+			op.pool = new AttributePool();
+			op.changeset = Changeset.builder(0).insert(doc, "", op.pool).toString()
+			model.applyOp(docName, {"op": op, v:0}, callback)
 	], (err) ->
 		console.log(err);
-
-
 	callback();
 
 valid_file = (fileName, vfs, callback) ->
@@ -63,23 +71,21 @@ auth = (agent, action) ->
 					)
 
 				data.stream.on("end", () ->
-					callback(file);
+					callback(null, file);
 					)
 		], callback
-		
 
-	if action.type in ["create"]
-		console.log("creating..")
+	if action.type in ["create", "read"] and not created[docName]?
+		console.log("creating...");
 		async.waterfall [
 			(callback) -> valid_file(docName, vfs, callback)
-			(stat, callback) -> action.accept(); callback();
-			(callback) -> console.log("test2");updateIfNecessary(action.docName, readFile, callback);
-			(callback) ->  callback();
+			(stat, callback) -> updateIfNecessary(action.docName, readFile, callback);
+			(callback) -> created[docName]=true; action.accept(); callback();
 		], (err) ->
 			action.reject() if err;
 		return
 
-	if action.type in ["update", "read"]
+	if action.type in ["update", "create", "read"]
 		valid_file(docName, vfs, (err)->
 			return action.reject() if err;
 			action.accept()
@@ -92,7 +98,7 @@ auth = (agent, action) ->
 exports.attach = (app, options)->
 	options.auth = auth
 	model = sharejs.createModel(options) if not model?
-	sharejs.attach(app, options);
+	sharejs.attach(app, options, model);
 
 exports.createProject = (vfs, project_id = hat()) ->
 	projects[project_id] = vfs
