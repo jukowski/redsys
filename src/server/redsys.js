@@ -54,9 +54,7 @@ updateIfNecessary = function(docName, initValueCallback, callback) {
         v: 0
       }, callback);
     }
-  ], function(err) {
-    return console.log(err);
-  });
+  ]);
   return callback();
 };
 

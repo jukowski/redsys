@@ -21,8 +21,6 @@ handle_redsys = (agent, msg) ->
 		console.log(agent.sessionId, "assigned to ", msg.project_id);
 		agentToProject[agent.headers.cookie] = { project: msg.project_id, vfs: projects[msg.project_id] };
 
-
-
 updateIfNecessary = (docName, initValueCallback, callback) ->
 	async.waterfall [
 		(callback) -> model.create(docName, default_text_format, {}, callback);
@@ -32,8 +30,7 @@ updateIfNecessary = (docName, initValueCallback, callback) ->
 			op.pool = new AttributePool();
 			op.changeset = Changeset.builder(0).insert(doc, "", op.pool).toString()
 			model.applyOp(docName, {"op": op, v:0}, callback)
-	], (err) ->
-		console.log(err);
+	]
 	callback();
 
 valid_file = (fileName, vfs, callback) ->
