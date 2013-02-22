@@ -22,13 +22,12 @@ server = http.createServer(app);
 app.use(express.static('../public'));
 
 redsys.attach(app, options);
-redsys.createProject(vfs);
 
+redsys.createProject(vfs, "sample_project");
 
 server.listen(8002);
 
 process.title = 'sharejs'
 process.on('uncaughtException',  (err) ->
-  #console.error('An error has occurred. Please file a ticket here: https://github.com/josephg/ShareJS/issues');
-  #console.error('Version '+ err);
+  console.error(err.stack);
 )

@@ -1,69 +1,57 @@
 <html>
   <head>
+    <link href="lib/jquery-ui/css/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css">
     <link href="ace/style.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
+
+    <script src="/lib/require.js"></script>
+    <script src="/lib/jquery-ui/jquery.js"></script>
+    <script src="/lib/jquery-ui/jquery-ui-min.js"></script>
   </head>
+
+  <script>
+    require.config({
+      baseUrl: ".",
+      shim: {
+        "/share/Changeset.js": {
+          deps: ["/share/AttributePool.js"]
+        },
+        "/share/share.uncompressed.js": {
+          deps: ["/channel/bcsocket.js", "/share/Changeset.js"]
+        },
+        "/share/ace.js": {
+          deps: ["/share/share.uncompressed.js"]
+        },
+        "/lib/ace/mode-latex.js": {
+          deps: ["/lib/ace/ace.js"]
+        },
+        "/lib/ace/theme-idle_fingers.js": {
+          deps: ["/lib/ace/ace.js"]
+        }
+      },
+    });
+
+    require(["redsys", "editor", "lib/async"], function(redsys, Editor, async) {
+      async.waterfall([
+          function (callback) { redsys.setProject("sample_project", callback); }, 
+          function (callback) { var editor = new Editor("editor"); editor.show("sample_project/energy.tex"); callback(); }
+        ]);
+      
+    });
+  </script>
 
   <body>
     <div id="header">
-      <div id="htext">
-        Editing <b id='docname'>...</b>
-        <a style="padding-left: 50px;" href="/code.html">New</a>
-      </div>
-        
     </div>
 
-    <div id="editor">Loading...</div>
-    <script src="/lib/ace/ace.js"></script>
-    <script src="/lib/ace/mode-latex.js"></script>
-    <script src="/lib/ace/theme-idle_fingers.js"></script>
-    <script src="/channel/bcsocket.js"></script>
-    <script src="/share/AttributePool.js"></script>
-    <script src="/share/Changeset.js"></script>
-    <script src="/share/share.uncompressed.js"></script>
-    <script src="/share/ace.js"></script> 
+    <div id="content">
+      <div id="filebrowser"></div>
+      <div id="editor">Loading...</div>
+    </div>
+
     <script>
-    
-var randomDocName = function(length) {
-  var chars, x;
-  if (length == null) {
-    length = 10;
-  }
-  chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
-  var name = [];
-  for (x = 0; x < length; x++) {
-    name.push(chars[Math.floor(Math.random() * chars.length)]);
-  }
-  return name.join('');
-};
 
-window.onload = function() {
-  var editor = ace.edit("editor");
 
-  editor.setReadOnly(true);
-  editor.getSession().setUseSoftTabs(true);
-  editor.getSession().setTabSize(2);
-  editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
-  editor.setTheme("ace/theme/idle_fingers");
-
-  var docName = "code:test";
-
-  var span = document.getElementById('docname').innerText = docName;
-
-  sharejs.open(docName, 'etherpad', function(error, doc) {
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    if (doc.created) {
-      doc.insert(0, "\\documentclass{article}\n\\begin{document}\nThe \\termref{cd=physics-energy, name=grav-potential}{gravitational\n  potential energy} of a system of masses $\\STRlabel[m1]{m_1}$\nand $\\STRlabel[m2]{M_2}$ at a distance\n$\\STRlabel[r]{r}$ using \\termref{cd=physics-constants,\n name=grav-constant}{gravitational constant} $\\STRlabel[G]{G}$\nis $\\STRlabel[U]{U}$\n\\begin{equation}\n  \\STRcopy{U} = -\\STRcopy{G}\\frac{\\STRcopy{m1}\\STRcopy{m2}}{\\STRcopy{r}}+\\STRlabel[K]{K}\n\\end{equation}\nwhere \\STRcopy{K} is the \\termref{cd=physics-constants,\n  name=integration}{constant of integration}. Choosing the convention\nthat \\STRcopy{K}$=0$ makes calculations simpler, albeit at the cost of\nmaking \\STRcopy{U} negative.\n\\end{document}\n");
-    }
-
-    doc.attach_ace(editor);
-    editor.setReadOnly(false);
-  });
-};
     </script>
   </body>
 </html>  
