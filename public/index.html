@@ -29,12 +29,16 @@
           deps: ["/lib/ace/ace.js"]
         }
       },
-    });
+    }); 
 
     require(["redsys", "editor", "lib/async"], function(redsys, Editor, async) {
+      var editor = null;
       async.waterfall([
           function (callback) { redsys.setProject("sample_project", callback); }, 
-          function (callback) { var editor = new Editor("editor"); editor.show("sample_project/energy.tex"); callback(); }
+          function (callback) { editor = new Editor("editor", redsys); editor.show("sample_project/energy.tex", callback); },
+          function (callback) { 
+            
+          }
         ]);
       
     });

@@ -9,25 +9,41 @@ define (require) ->
 	redsys.project = "";
 	redsys.doc = null;
 	redsys.url = location.protocol + "//" + location.host + "/channel";
+	connection = null
 
-	redsys.getDoc = (callback) ->
-		callback(null, @doc) if @doc != null
+	redsys.getConnection = (callback) ->
+		return callback(null, connection) if connection != null
 		connection = new sharejs.Connection(redsys.url)
-		connection.open "__REDSYS__", "text", (error, doc) ->
-			redsys.doc = doc;
-			callback(error, doc);
+		retry = 5
+		retryFunc = () ->
+			return callback("Connection to server failed") if retry == 0;
+			return callback(null, connection) if connection.id?
+			retry--;
+			setTimeout(retryFunc, 200);
 
-	redsys.call = (action, callback) ->
+		setTimeout(retryFunc, 200);
+
+	redsys.call = (action, data, callback) ->
 		async.waterfall [
-			(callback) -> redsys.getDoc(callback),
-			(doc, callback) -> doc.insert(0, JSON.stringify(action), (err) ->
-					callback();
-				); 
-		], callback;
-
+			(callback) -> redsys.getConnection(callback)
+			(conn, callback) -> 
+				data.client = connection.id
+				$.ajax(
+					url: "/"+action,
+					type: "POST",
+					data: data,
+				).done((data) ->
+					result = JSON.parse(data);
+					if (result.status == "ok")
+						callback(null);
+					else
+						callback(result.message);
+				)
+		], callback
 
 	redsys.setProject = (project, callback) ->
 		async.waterfall [
-			(callback) -> redsys.call { action : "setProject", project_id : project }, callback,
+			(callback) -> redsys.call  "setProject", { project_id : project }, callback,
+			(callback) -> redsys.project = project; callback()
 		], callback;
 	redsys

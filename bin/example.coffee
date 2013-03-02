@@ -19,6 +19,7 @@ options =
 
 
 server = http.createServer(app);
+app.use(express.bodyParser());
 app.use(express.static('../public'));
 
 redsys.attach(app, options);
@@ -29,5 +30,5 @@ server.listen(8002);
 
 process.title = 'sharejs'
 process.on('uncaughtException',  (err) ->
-  console.error(err.stack);
+#  console.error(err.stack);
 )
