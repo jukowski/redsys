@@ -9,18 +9,23 @@ define((require) ->
 		editor = null
 		editorDoc = null
 		redsys = null
+		currentDocName = null;
 
 		constructor: (@id, _redsys) ->
 			redsys = _redsys
 
-		show: (docName, callback) ->
-			docName = docName.replace(/\//, "::");
+		save: (callback) ->
+			return if not currentDocName?
+			redsys.call("saveFile", {file: currentDocName}, callback);
+
+		open: (docName, callback) ->
 			editor = ace.edit(@id);
 			editor.setReadOnly(true);
 			editor.getSession().setUseSoftTabs(true);
 			editor.getSession().setTabSize(2);
 			editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
 			editor.setTheme("ace/theme/idle_fingers");
+			currentDocName = docName;
 
 			async.waterfall [
 				(callback) -> redsys.getConnection(callback)
@@ -36,8 +41,6 @@ define((require) ->
 
 		setAttributes : (offset, length, attribs, callback) ->
 			editorDoc.type.api.setAttributes.apply(editorDoc, [offset, length, attribs]);
-
-		
 
 	Editor
 );

@@ -20,6 +20,26 @@ handle_setProject = (req, res) ->
 	agentToProject[msg.client] = { project: msg.project_id, vfs: projects[msg.project_id] };
 	res.send JSON.stringify({status:"ok"});
 
+handle_saveFile = (req, res) ->
+	msg = req.body;
+	return res.send(JSON.stringify({status:"error", message:"No file given" })) if not msg.file?;
+
+	projectData  = agentToProject[msg.client];
+	return res.send(JSON.stringify({status:"error", message:"No project opened." })) if not projectData?;
+
+	vfs = projectData.vfs
+	async.waterfall [
+		(callback) -> valid_file(msg.file, vfs, callback),
+		(callback) -> 
+	], (err) ->
+		if err?
+			
+
+	console.log(msg.file);
+
+
+	res.send JSON.stringify({status:"ok"});
+
 updateIfNecessary = (docName, initValueCallback, callback) ->
 	async.waterfall [
 		(callback) -> model.create(docName, default_text_format, {}, callback);
@@ -45,9 +65,8 @@ auth = (agent, action) ->
 	return action.reject() if not agentToProject[agent.sessionId]?
 
 	projectData = agentToProject[agent.sessionId];
-	return action.reject() if not S(action.docName).startsWith(projectData.project);
 	
-	docName = action.docName.replace("::","/")[projectData.project.length..];
+	docName = action.docName;
 	vfs = projectData.vfs
 
 	readFile = (callback)->
@@ -86,6 +105,7 @@ auth = (agent, action) ->
 
 exports.attach = (app, options)->
 	app.post '/setProject', handle_setProject;	
+	app.post '/saveFile', handle_saveFile;	
 
 	options.auth = auth
 	model = sharejs.createModel(options) if not model?

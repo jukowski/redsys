@@ -35,17 +35,20 @@
       var editor = null;
       async.waterfall([
           function (callback) { redsys.setProject("sample_project", callback); }, 
-          function (callback) { editor = new Editor("editor", redsys); editor.show("sample_project/energy.tex", callback); },
+          function (callback) { editor = new Editor("editor", redsys); editor.open("energy.tex", callback); },
           function (callback) { 
             
           }
         ]);
-      
+      $("#save").click(function() {
+        editor.save();
+      });
     });
   </script>
 
   <body>
     <div id="header">
+      <button id="save">Save</button>
     </div>
 
     <div id="content">
