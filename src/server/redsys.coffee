@@ -91,7 +91,7 @@ writeVFSFile = (vfs, docName, data, callback)->
 
 auth = (agent, action) ->
 	# handling normal actions
-	console.log("session id=", agent.sessionId, "action=",action.name);
+	# console.log("session id=", agent.sessionId, "action=",action.name);
 
 	return action.accept() if action.name in ["connect"]
 

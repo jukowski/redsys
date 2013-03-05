@@ -80,8 +80,7 @@ exports.test_open_with_project = (test)->
 exports.test_save_file = (test) ->
 	async.waterfall [
 		(callback) -> mockApp.makePost(agent2, "/saveFile", {file: "test1.tex" }, callback)
-		(data, callback) -> console.log(data); test.ok(data == '{"status":"ok"}'); test.done(); callback();	
+		(data, callback) -> test.ok(data == '{"status":"ok"}'); test.done(); callback();	
 	], (err) ->
 		if err?
 			test.fail(err);
-	
