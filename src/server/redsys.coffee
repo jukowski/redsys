@@ -7,11 +7,15 @@ projects = {};
 hat = require("hat");
 async = require("async");
 S = require("string");
+stream = require "stream"
 
 created = {};
 
 agentToProject = {};
 model = null
+
+valid_file = (fileName, vfs, callback) ->
+	vfs.stat(fileName, {}, callback);
 
 handle_setProject = (req, res) ->
 	msg = req.body;
@@ -29,35 +33,65 @@ handle_saveFile = (req, res) ->
 
 	vfs = projectData.vfs
 	async.waterfall [
-		(callback) -> valid_file(msg.file, vfs, callback),
-		(callback) -> 
+		(callback) -> valid_file msg.file, vfs, callback
+		(stat, callback) -> model.getSnapshot msg.file, callback
+		(snapshot, callback) -> 
+			text = snapshot.type.api.getText.apply(snapshot); 
+			q = new stream.Stream
+			q.readable = true
+			vfs.mkfile(msg.file, {stream: q}, callback)
+			q.emit('data', text)
+			q.emit('end')
 	], (err) ->
-		if err?
+		return res.send JSON.stringify({status:"error", message: err}) if err?;
+		res.send JSON.stringify({status:"ok"}); 
 			
-
-	console.log(msg.file);
-
-
-	res.send JSON.stringify({status:"ok"});
 
 updateIfNecessary = (docName, initValueCallback, callback) ->
 	async.waterfall [
-		(callback) -> model.create(docName, default_text_format, {}, callback);
+		(callback) -> console.log("creating", docName); model.create(docName, default_text_format, {}, callback);
 		(callback) -> initValueCallback(callback);
 		(doc, callback) ->
 			op = {};
 			op.pool = new AttributePool();
 			op.changeset = Changeset.builder(0).insert(doc, "", op.pool).toString()
 			model.applyOp(docName, {"op": op, v:0}, callback)
-	]
-	callback();
+		(ver, callback) -> callback()
+	], callback;
 
-valid_file = (fileName, vfs, callback) ->
-	vfs.stat(fileName, {}, callback);
+readVFSFile = (vfs, docName, callback)->
+	async.waterfall [
+		(callback) -> vfs.readfile docName, {}, (err, data) ->
+			return callback(err) if err?
+			file = ""; 
+			data.stream.on("data", (str) ->
+				file += str.toString();
+				)
+
+			data.stream.on("end", () ->
+				callback(null, file);
+				)
+	], callback
+
+writeVFSFile = (vfs, docName, data, callback)->
+	async.waterfall [
+		(callback) -> vfs.readfile(docName, {}, callback),
+		(data, callback) ->
+			file = ""; 
+			data.stream.on("data", (str) ->
+				file += str.toString();
+				)
+
+			data.stream.on("end", () ->
+				callback(null, file);
+				)
+	], callback
+
+
 
 auth = (agent, action) ->
 	# handling normal actions
-	console.log(agent.sessionId, action.name);
+	console.log("session id=", agent.sessionId, "action=",action.name);
 
 	return action.accept() if action.name in ["connect"]
 
@@ -69,33 +103,21 @@ auth = (agent, action) ->
 	docName = action.docName;
 	vfs = projectData.vfs
 
-	readFile = (callback)->
-		async.waterfall [
-			(callback) -> vfs.readfile(docName, {}, callback),
-			(data, callback) ->
-				file = ""; 
-				data.stream.on("data", (str) ->
-					file += str.toString();
-					)
-
-				data.stream.on("end", () ->
-					callback(null, file);
-					)
-		], callback
+	readFile = (callback) ->
+		readVFSFile(vfs, docName, callback);
 
 	if action.type in ["create", "read"] and not created[docName]?
-		console.log("creating...");
 		async.waterfall [
 			(callback) -> valid_file(docName, vfs, callback)
 			(stat, callback) -> updateIfNecessary(action.docName, readFile, callback);
 			(callback) -> created[docName]=true; action.accept(); callback();
-		], (err) ->
-			action.reject() if err;
+		], (msg, err) ->
+			action.reject() if err?;
 		return
 
 	if action.type in ["update", "create", "read"]
 		valid_file(docName, vfs, (err)->
-			return action.reject() if err;
+			return action.reject() if err?;
 			action.accept()
 		)
 		return;
