@@ -23,14 +23,14 @@ define (require) ->
 
 		setTimeout(retryFunc, 200);
 
-	redsys.call = (action, data, callback) ->
+	redsys.call = (action, data, callback, method="POST") ->
 		async.waterfall [
 			(callback) -> redsys.getConnection(callback)
 			(conn, callback) -> 
 				data.client = connection.id
 				$.ajax(
 					url: "/"+action,
-					type: "POST",
+					type: method,
 					data: data,
 				).done((data) ->
 					result = JSON.parse(data);
@@ -40,6 +40,15 @@ define (require) ->
 						callback(result.message);
 				)
 		], callback
+
+	redsys.getList = (path, callback) ->
+		async.waterfall [
+			(callback) -> redsys.call  "list", { path : path }, callback, "GET"
+			(data, callback) ->
+				console.log(data);
+				callback();
+		], callback;
+
 
 	redsys.setProject = (project, callback) ->
 		async.waterfall [

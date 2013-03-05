@@ -17,6 +17,31 @@ model = null
 valid_file = (fileName, vfs, callback) ->
 	vfs.stat(fileName, {}, callback);
 
+handle_listFiles = (req, res) ->
+	msg = req.query;
+	return res.send(JSON.stringify({status:"error", message:"No path given" })) if not msg.path?;
+	projectData  = agentToProject[msg.client];
+	return res.send(JSON.stringify({status:"error", message:"No project opened." })) if not projectData?;
+	vfs = projectData.vfs
+	async.waterfall [
+		(callback) -> vfs.readdir msg.path, {}, (err, meta) ->
+			list = meta.stream
+			result = [];
+			list.on("data", (dir) ->
+				result.push(dir) if dir.name?;
+				)
+
+			list.on("end", () ->
+				callback(null, result);
+				)
+
+			#list.resume();
+
+	], (err, data) ->
+		return res.send JSON.stringify({status:"error", message: err}) if err?;
+		res.send JSON.stringify({status:"ok", data: data}); 
+
+
 handle_setProject = (req, res) ->
 	msg = req.body;
 	return res.send(JSON.stringify({status:"error", message:"Project not found" })) if not projects[msg.project_id]?;
@@ -128,6 +153,7 @@ auth = (agent, action) ->
 exports.attach = (app, options)->
 	app.post '/setProject', handle_setProject;	
 	app.post '/saveFile', handle_saveFile;	
+	app.get '/list', handle_listFiles;	
 
 	options.auth = auth
 	model = sharejs.createModel(options) if not model?
