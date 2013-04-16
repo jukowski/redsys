@@ -2,6 +2,8 @@
   <head>
     <link href="lib/jquery-ui/css/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css">
     <link href="ace/style.css" rel="stylesheet" type="text/css">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <link href="css/icon.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
 
     <script src="/lib/require.js"></script>
@@ -54,19 +56,30 @@
   </script>
 
   <body>
+    <div id="left-pane" class = "pane-hidden">
+      <div id = "title-project-view">
+        <i class="icon-list-alt"></i>
+         Project List 
+      </div>
+      <div id = "projectsList"> </div>
+    </div>
+
     <div id="header">
-      <button id="save">Save</button>
+      <button id = "projectls" class = "headerButton">  &#9776; List </button>
+      <div id = "title-redsys"> RedSyS </div>
+      <button id="save" class = "headerButton">Save</button>
     </div>
 
     <div id="content">
+      <div id = "emptyBar"> </div>
       <div id="filebrowser"></div>
       <div id="editor">Loading...</div>
     </div>
 
     <script>
 
-
     </script>
+    <script src="js/projectView.js"></script>
   </body>
 </html>  
 
