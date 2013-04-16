@@ -27,6 +27,9 @@
         "/lib/ace/mode-latex.js": {
           deps: ["/lib/ace/ace.js"]
         },
+        "/lib/ace/keybinding-emacs.js": {
+          deps: ["/lib/ace/ace.js"]
+        },
         "/lib/ace/theme-idle_fingers.js": {
           deps: ["/lib/ace/ace.js"]
         }
@@ -38,8 +41,12 @@
       async.waterfall([
           function (callback) { redsys.setProject("sample_project", callback); }, 
           function (callback) { editor = new Editor("editor", redsys); editor.open("energy.tex", callback); },
+          function (callback) { redsys.getList("/", callback); },
+          function (data) { console.log(data); callback(); },
           function (callback) { 
-            
+            editor.addShortcut("save", "C-x C-s", function(ace) {
+              editor.save();
+            });
           }
         ]);
       $("#save").click(function() {
