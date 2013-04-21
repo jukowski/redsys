@@ -1,83 +1,70 @@
 <html>
   <head>
+    <link href="lib/jquery-ui/css/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css">
     <link href="ace/style.css" rel="stylesheet" type="text/css">
     <link href="jquery/css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
-    <script type="text/javascript"  src="jquery/jquery.js"></script>
-    <script type="text/javascript"  src="jquery/jquery-ui.js"></script>
-    <script type="text/javascript"  src="async.js"></script>
-    <script type="text/javascript"  src="sallyjs/core.js"></script>
-    <script type="text/javascript"  src="sallyjs/acealex.js"></script>
+    <script src="/lib/require.js"></script>
+    <script src="/lib/jquery-ui/jquery.js"></script>
+    <script src="/lib/jquery-ui/jquery-ui-min.js"></script>
   </head>
+
+  <script>
+    require.config({
+      baseUrl: ".",
+      shim: {
+        "/share/Changeset.js": {
+          deps: ["/share/AttributePool.js"]
+        },
+        "/share/share.uncompressed.js": {
+          deps: ["/channel/bcsocket.js", "/share/Changeset.js"]
+        },
+        "/share/ace.js": {
+          deps: ["/share/share.uncompressed.js"]
+        },
+        "/lib/ace/mode-latex.js": {
+          deps: ["/lib/ace/ace.js"]
+        },
+        "/lib/ace/keybinding-emacs.js": {
+          deps: ["/lib/ace/ace.js"]
+        },
+        "/lib/ace/theme-idle_fingers.js": {
+          deps: ["/lib/ace/ace.js"]
+        }
+      },
+    });
+
+    require(["redsys", "editor", "lib/async", "sally"], function(redsys, Editor, async, Sally) {
+      var editor = null;
+
+      var q = new Sally();
+      q.init();
+      async.waterfall([
+          function (callback) { redsys.setProject("sample_project", callback); }, 
+          function (callback) { editor = new Editor("editor", redsys); editor.open("energy.tex", callback); },
+          function (callback) { 
+            editor.addShortcut("save", "C-x C-s", function(ace) {
+              editor.save();
+            });
+          }
+        ]);
+      $("#save").click(function() {
+        editor.save();
+      });
+    });
+  </script>
 
   <body>
     <div id="header">
-      <div id="htext">
-        Editing <b id='docname'>...</b>
-        <a style="padding-left: 50px;" href="/code.html">New</a>
-      </div>
+
+    <button id="save">Save</button>
     </div>
 
-    <div id="editor">Loading...</div>
+    <div id="content">
+      <div id="filebrowser"></div>
+      <div id="editor">Loading...</div>
+    </div>
 
-    <script src="/lib/ace/ace.js"></script>
-    <script src="/lib/ace/mode-latex.js"></script>
-    <script src="/lib/ace/theme-idle_fingers.js"></script>
-    <script src="/channel/bcsocket.js"></script>
-    <script src="/share/AttributePool.js"></script>
-    <script src="/share/Changeset.js"></script>
-    <script src="/share/share.uncompressed.js"></script>
-    <script src="/share/ace.js"></script> 
-
-    <script>
-    $(function() {
-      window.sally = new window.Sally();
-      sally.init(function() {
-      });
-    });
-        
-var randomDocName = function(length) {
-  var chars, x;
-  if (length == null) {
-    length = 10;
-  }
-  chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
-  var name = [];
-  for (x = 0; x < length; x++) {
-    name.push(chars[Math.floor(Math.random() * chars.length)]);
-  }
-  return name.join('');
-};
-
-window.onload = function() {
-  var editor = ace.edit("editor");
-  Sally.aceAlexTextAdaptor(sally, editor);
-
-  editor.setReadOnly(true);
-  editor.getSession().setUseSoftTabs(true);
-  editor.getSession().setTabSize(2);
-  editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
-  editor.setTheme("ace/theme/idle_fingers");
-
-  var docName = "code:test";
-
-  var span = document.getElementById('docname').innerText = docName;
-
-  sharejs.open(docName, 'etherpad', function(error, doc) {
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    if (doc.created) {
-      doc.insert(0, "\\begin{omgroup}[id=money-omdoc]{A basic Theory of Money}\n\n\\begin{module}[id=money]\n\\importmodule[\\KWARCslides{units\x2Fen\x2Fquantities}]{quantities}\n\n\\symdef[title=Monetary Unit]{monetaryunit}{\\text{MU}}\n\\symdef[title=Monetary Quantity]{monetaryquantity}{\\text{MQ}}\n\n\\begin{axiom}\n  Monetary quantities are quantities\n  \\[\\sseteq\\monetaryquantity\\quantity\\]\n\\end{axiom}\n\n\\begin{definition}\n  Scalars combine with monetary units to \\adefii{monetary quantities}{monetary}{quantity}.\n\\[\\foralS{x}\\RealNumbers{\\foralS{u}\\monetaryunit{\\inset{\\quantityof{x}{u}}\\monetaryquantity}}\\]\n\\end{definition}\n\n\\symdef[title=United states dollar,descriptionThe official tender of the USA]{usdollar}{\\$}\n\\symtype[usdollar]{sts}{\\monetaryunit}\n\n\\symdef[title=The Euro,description=The official tender of the eurozone]{euro}{\\text{\\officialeuro}}\n\\symtype[euro]{sts}{\\monetaryunit}\n\n\\begin{omtext}\n  As a rule of thumb, $\\quantityof{1}{\\euro}$ is about $\\quantityof{1.3}{\\usdollar}$.\n\\end{omtext}\n\n\\end{module}\n\\end{omgroup}\n%%% Local Variables: \n%%% mode: latex\n%%% TeX-master: \"all\"\n%%% End: \n\n% LocalWords:  omgroup money-omdoc symdef monetaryunit symboldec sseteq symtype\n% LocalWords:  monetaryquantity usdollar sts officialeuro quantityof omtext\n% LocalWords:  KWARCslides");
-    }
-
-    doc.attach_ace(editor);
-    editor.setReadOnly(false);
-  });
-};
-    </script>
   </body>
 </html>  
 

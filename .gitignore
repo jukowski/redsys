@@ -1,1 +1,3 @@
 node_modules/*
+public/*.js
+test_files/*
