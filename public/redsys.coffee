@@ -1,14 +1,15 @@
 define (require) ->
-	require "/channel/bcsocket.js"
-	require "/share/AttributePool.js" 
-	require "/share/Changeset.js" 
-	require "/share/share.uncompressed.js" 
-	async = require "/lib/async.js" 
+	require "channel/bcsocket"
+	require "share/AttributePool"
+	require "share/Changeset"
+	require "share/share.uncompressed" 
+	async = require "lib/async"
 
 	redsys = {};
 	redsys.project = "";
 	redsys.doc = null;
-	redsys.url = location.protocol + "//" + location.host + "/channel";
+	redsys.root = require.toUrl(""); 
+	redsys.url = require.toUrl("channel");
 	connection = null
 
 	redsys.getConnection = (callback) ->
@@ -29,9 +30,10 @@ define (require) ->
 			(conn, callback) -> 
 				data.client = connection.id
 				$.ajax(
-					url: "/"+action,
+					url: redsys.root+action,
 					type: method,
 					data: data,
+					dataType: "json"
 				).done((data) ->
 					result = JSON.parse(data);
 					if (result.status == "ok")
