@@ -1,9 +1,5 @@
 define((require) ->
-	require "/lib/ace/ace.js"
-	require "/lib/ace/mode-latex.js"
-	require "/lib/ace/theme-idle_fingers.js"
-	require "/lib/ace/keybinding-emacs.js"
-	require "/share/ace.js"
+	require "share/ace"
 	async = require "/lib/async.js" 
 
 	class Editor
@@ -13,7 +9,7 @@ define((require) ->
 		currentDocName = null;
 		keyHandler = null;
 
-		constructor: (@id, _redsys) ->
+		constructor: (_redsys) ->
 			redsys = _redsys
 
 		addShortcut: (name, shortcut, func) ->
@@ -26,19 +22,8 @@ define((require) ->
 			return if not currentDocName?
 			redsys.call("saveFile", {file: currentDocName}, callback);
 
-		open: (docName, callback) ->
-			editor = ace.edit(@id);
-			editor.setReadOnly(true);
-			editor.getSession().setUseSoftTabs(true);
-			editor.getSession().setTabSize(2);
-			editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
-			editor.setTheme("ace/theme/idle_fingers");
-			window.keyHandler = keyHandler = ace.require("ace/keyboard/emacs").handler;
-			editor.setKeyboardHandler(keyHandler);
-
-			window.editor = editor;
+		attach : (docName, editor, callback) ->
 			currentDocName = docName;
-
 			async.waterfall [
 				(callback) -> redsys.getConnection(callback)
 				(conn, callback) ->
@@ -50,6 +35,20 @@ define((require) ->
 						callback();
 					)
 			], callback
+
+
+		open: (id, docName, callback) ->
+			editor = ace.edit(id);
+			editor.setReadOnly(true);
+			editor.getSession().setUseSoftTabs(true);
+			editor.getSession().setTabSize(2);
+			editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
+			editor.setTheme("ace/theme/idle_fingers");
+			window.keyHandler = keyHandler = ace.require("ace/keyboard/emacs").handler;
+			editor.setKeyboardHandler(keyHandler);
+
+			@attach(docName, editor, callback);
+
 
 		setAttributes : (offset, length, attribs, callback) ->
 			editorDoc.type.api.setAttributes.apply(editorDoc, [offset, length, attribs]);

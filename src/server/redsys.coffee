@@ -1,6 +1,9 @@
 default_text_format = "etherpad";
+express = require('express');
+sessionHandler = require('share/src/server/session').handler
+sharejs = require('share').server
+{EventEmitter} = require 'events'
 
-sharejs = require("share").server;
 Changeset = require("share").types.etherpad.Changeset;
 AttributePool = require("share").types.etherpad.AttributePool;
 projects = {};
@@ -8,6 +11,9 @@ hat = require("hat");
 async = require("async");
 S = require("string");
 stream = require "stream"
+path = require "path"
+
+browserChannel = require('browserchannel').server
 
 created = {};
 
@@ -117,6 +123,7 @@ writeVFSFile = (vfs, docName, data, callback)->
 auth = (agent, action) ->
 	# handling normal actions
 	# console.log("session id=", agent.sessionId, "action=",action.name);
+	console.log("handling auth ", agentm action);
 
 	return action.accept() if action.name in ["connect"]
 
@@ -151,13 +158,29 @@ auth = (agent, action) ->
 	return action.reject();
 
 exports.attach = (app, options)->
-	app.post '/setProject', handle_setProject;	
-	app.post '/saveFile', handle_saveFile;	
-	app.get '/list', handle_listFiles;	
-
 	options.auth = auth
 	model = sharejs.createModel(options) if not model?
-	sharejs.attach(app, options, model);
+	createAgent = require('share/src/server/useragent') model, options
+
+	console.log(path.dirname(require.resolve("share"))+'/webclient');
+	app.use "/share", express.static path.dirname(require.resolve("share"))+'/webclient';
+
+	app.use browserChannel options.browserChannel, (session) ->
+		sessionWrapper = new EventEmitter();
+
+		#session.on 'message', bufferMsg = (msg) ->
+		#	console.log(msg);
+		#	sessionWrapper.emit "message", msg
+
+		#session.on 'message', bufferMsg = (msg) ->
+		#	console.log(msg);
+		#	sessionWrapper.emit "message", msg
+
+		#sessionWrapper.ready = -> @state isnt 'closed'
+		#sessionHandler sessionWrapper, createAgent
+		sessionHandler session, createAgent
+
+
 
 exports.createProject = (vfs, project_id = hat()) ->
 	projects[project_id] = vfs

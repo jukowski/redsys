@@ -2,13 +2,16 @@
   <head>
     <link href="lib/jquery-ui/css/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css">
     <link href="ace/style.css" rel="stylesheet" type="text/css">
-    <link href="css/style.css" rel="stylesheet" type="text/css">
-    <link href="css/icon.css" rel="stylesheet" type="text/css">
     <title>Code editor</title>
 
     <script src="/lib/require.js"></script>
     <script src="/lib/jquery-ui/jquery.js"></script>
     <script src="/lib/jquery-ui/jquery-ui-min.js"></script>
+    <script src="/lib/ace/ace.js"></script>
+    <script src="/lib/ace/mode-latex.js"></script>
+    <script src="/lib/ace/theme-idle_fingers.js"></script>
+    <script src="/lib/ace/keybinding-emacs.js"></script>
+
   </head>
 
   <script>
@@ -24,15 +27,6 @@
         "/share/ace.js": {
           deps: ["/share/share.uncompressed.js"]
         },
-        "/lib/ace/mode-latex.js": {
-          deps: ["/lib/ace/ace.js"]
-        },
-        "/lib/ace/keybinding-emacs.js": {
-          deps: ["/lib/ace/ace.js"]
-        },
-        "/lib/ace/theme-idle_fingers.js": {
-          deps: ["/lib/ace/ace.js"]
-        }
       },
     }); 
 
