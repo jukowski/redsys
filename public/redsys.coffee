@@ -8,8 +8,10 @@ define (require) ->
 	redsys = {};
 	redsys.project = "";
 	redsys.doc = null;
-	redsys.root = require.toUrl(""); 
-	redsys.url = require.toUrl("channel");
+#	redsys.root = require.toUrl(""); 
+#	redsys.url = require.toUrl("channel");
+	redsys.root = "http://localhost:8002"; 
+	redsys.url = "http://localhost:8002/channel";
 	connection = null
 
 	redsys.getConnection = (callback) ->
@@ -17,6 +19,7 @@ define (require) ->
 		connection = new sharejs.Connection(redsys.url)
 		retry = 5
 		retryFunc = () ->
+			console.log(connection);
 			return callback("Connection to server failed") if retry == 0;
 			return callback(null, connection) if connection.id?
 			retry--;
@@ -28,6 +31,7 @@ define (require) ->
 		async.waterfall [
 			(callback) -> redsys.getConnection(callback)
 			(conn, callback) -> 
+				console.log("conn = "+conn);
 				data.client = connection.id
 				$.ajax(
 					url: redsys.root+action,
