@@ -2,6 +2,8 @@
   "name": "redsys",
   "version": "0.0.1",
   "dependencies": {
+    "shelljs" : "*",
+    "browserchannel": "*",
     "express": "3.0.0",
     "share" : "*",
     "async" : "0.1.22",
