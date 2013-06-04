@@ -83,6 +83,8 @@ class PositionManager
 	
 	length : () ->
 		return @offsets[@offsets.length-1]
+
+
 		
 exports.PositionIterator = PositionIterator
 exports.PositionManager = PositionManager
