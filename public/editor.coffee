@@ -1,4 +1,6 @@
 define((require) ->
+	require "share/AttributePool"
+	require "share/Changeset"
 	require "share/ace"
 	async = require "/lib/async.js" 
 
