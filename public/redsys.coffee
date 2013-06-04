@@ -33,7 +33,6 @@ define (require) ->
 		msgHandler = connection.socket.onmessage;
 		connection.socket.onmessage = extendedMessageHandler(msgHandler);
 
-		window.redcon = connection;
 		retry = 5
 		retryFunc = () ->
 			return callback("Connection to server failed") if retry == 0;
@@ -65,6 +64,12 @@ define (require) ->
 
 	redsys.getList = (path, callback) ->
 		redsys.call "listFiles", { path : path }, callback
+
+	redsys.getServices = (callback) ->
+		redsys.call "listServices", { }, callback
+
+	redsys.enableService = (serviceID, file, callback) ->
+		redsys.call "enableService", { service: serviceID, file: file }, callback
 
 	redsys.setProject = (project, callback) ->
 		async.waterfall [

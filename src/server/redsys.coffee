@@ -12,6 +12,8 @@ async = require("async");
 S = require("string");
 stream = require "stream"
 path = require "path"
+serviceManager = require "./service_manager"
+console.log(serviceManager);
 
 browserChannel = require('browserchannel').server
 
@@ -26,7 +28,21 @@ valid_file = (fileName, vfs, callback) ->
 handle_action = (msg, callback) ->
 	return handle_setProject(msg.data, callback) if (msg.action == "setProject");
 	return handle_listFiles(msg.data, callback) if (msg.action == "listFiles");
+	return handle_listServices(msg.data, callback) if (msg.action == "listServices");
+	return handle_enableService(msg.data, callback) if (msg.action == "enableService");
 	return callback("don't know how to handle "+msg);
+
+handle_listServices = (msg, callback) ->
+	projectData  = agentToProject[msg.client];
+	return callback("No project opened.") if not projectData?;
+	callback null, serviceManager.getAvailableServices()
+
+handle_enableService = (msg, callback) ->
+	projectData  = agentToProject[msg.client];
+	return callback("No project opened.") if not projectData?;
+	return callback("No file specified.") if not msg.file?;
+	return callback("No service specified.") if not msg.service?;
+	callback null, serviceManager.enableService(msg.service, msg.file, projectData.project)
 
 handle_listFiles = (msg, callback) ->
 	return callback("No path given" ) if not msg.path?;

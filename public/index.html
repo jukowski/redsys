@@ -15,14 +15,29 @@
   </head>
 
   <script>
+    require.config({
+      baseUrl: ".",
+      shim: {
+        "share/Changeset": {
+          deps: ["share/AttributePool"]
+        },
+        "share/share.uncompressed": {
+          deps: ["channel/bcsocket", "share/Changeset"]
+        },
+        "share/ace": {
+          deps: ["share/share.uncompressed"]
+        },
+      },
+    }); 
 
     require(["redsys", "editor", "lib/async"], function(redsys, Editor, async) {
+      window.redsys = redsys;
       var editor = null;
       async.waterfall([
           function (callback) { redsys.setProject("sample_project", callback); }, 
           function (callback) { editor = new Editor(redsys); editor.open("editor", "energy.tex", callback); },
-          function (callback) { redsys.getList("/", callback); },
-          function (data, callback) { console.log(data); callback(); },
+          function (callback) { redsys.getServices(callback); },
+          function (data, callback) { redsys.enableService("nnexus", "energy.tex", callback); },
           function (callback) { 
             editor.addShortcut("save", "C-x C-s", function(ace) {
               editor.save();

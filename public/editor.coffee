@@ -1,6 +1,8 @@
 define((require) ->
+	require "channel/bcsocket"
 	require "share/AttributePool"
 	require "share/Changeset"
+	require "share/share.uncompressed" 
 	require "share/ace"
 	async = require "/lib/async.js" 
 
@@ -38,7 +40,6 @@ define((require) ->
 					)
 			], callback
 
-
 		open: (id, docName, callback) ->
 			editor = ace.edit(id);
 			editor.setReadOnly(true);
@@ -46,7 +47,7 @@ define((require) ->
 			editor.getSession().setTabSize(2);
 			editor.getSession().setMode(new (ace.require("ace/mode/latex").Mode));
 			editor.setTheme("ace/theme/idle_fingers");
-			window.keyHandler = keyHandler = ace.require("ace/keyboard/emacs").handler;
+			keyHandler = ace.require("ace/keyboard/emacs").handler;
 			editor.setKeyboardHandler(keyHandler);
 
 			@attach(docName, editor, callback);
