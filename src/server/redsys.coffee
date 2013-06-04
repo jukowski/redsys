@@ -13,7 +13,6 @@ S = require("string");
 stream = require "stream"
 path = require "path"
 serviceManager = require "./service_manager"
-console.log(serviceManager);
 
 browserChannel = require('browserchannel').server
 
@@ -42,7 +41,7 @@ handle_enableService = (msg, callback) ->
 	return callback("No project opened.") if not projectData?;
 	return callback("No file specified.") if not msg.file?;
 	return callback("No service specified.") if not msg.service?;
-	callback null, serviceManager.enableService(msg.service, msg.file, projectData.project)
+	callback null, serviceManager.enableService(model, msg.service, msg.file, projectData.project)
 
 handle_listFiles = (msg, callback) ->
 	return callback("No path given" ) if not msg.path?;
@@ -184,7 +183,6 @@ exports.attach = (app, options)->
 		session.on 'message', (recvMsg) ->
 			if (recvMsg.action?)
 				handle_action recvMsg, (err, msg) ->
-					console.log("sending back ", err, msg);
 					return session.send({status: "error", msg: msg, msgid: recvMsg.msgid}) if err?
 					session.send({status: "ok", msg: msg, msgid: recvMsg.msgid})
 

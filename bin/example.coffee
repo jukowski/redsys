@@ -30,5 +30,5 @@ server.listen(8002);
 
 process.title = 'sharejs'
 process.on('uncaughtException',  (err) ->
-#  console.error(err.stack);
+  console.error(err.stack);
 )

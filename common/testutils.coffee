@@ -1,6 +1,6 @@
 path = require("path")
 shareDir = path.dirname(require.resolve('share'));
-etherpad = require(shareDir+"/src/types/etherpad-api")
+etherpad = require(shareDir+"/src/types/etherpad-api").etherpad
 MicroEvent = require shareDir+'/src/client/microevent'
 
 Doc = (data) ->

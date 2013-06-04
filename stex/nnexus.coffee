@@ -61,7 +61,7 @@ class NNexus
 			ops = etherpad.compose(ops, op);
 
 		sendToNNexus _doc.getText(), (err, links) ->
-			return if err?
+			return console.log(err) if err?
 			for link in links
 				_doc.setAttributes(link.offset_begin, link.offset_end-link.offset_begin, [["nnexus", true]]);
 			_this.makeSubmit(ops);
